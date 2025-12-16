@@ -398,22 +398,26 @@ Standard NLP models (like BERT) fail on medical jargon. We utilized **BioBERT** 
 
 The module (`backend/src/nlp/clinical_nlp.py`) implements two distinct pipelines using the Hugging Face ecosystem:
 
-```mermaid
 graph TD
-    Input[Clinical Note Text] --> Tokenizer[BioBERT Tokenizer]
-    Tokenizer --> Encoder[Transformer Encoder]
+    Patient(Patient Arrives) -->|Symptom: Chest Pain| Triage[Hospital Triage]
+    Triage -->|Acquire Image| XRay[X-Ray Scan]
+    XRay -->|DICOM Data| AI[AI Diagnostic Model]
     
-    Encoder --> Head1[NER Head]
-    Encoder --> Head2[Q&A Head]
+    subgraph AI_Analysis [AI Decision Process]
+        AI -->|Forward Pass| Class[Classification: Pneumonia]
+        AI -->|Grad-CAM| Heatmap[Visual Heatmap]
+    end
+
+    Class --> Doctor{Radiologist Review}
+    Heatmap --> Doctor
     
-    Head1 --> Entities[Named Entities]
-    Head2 --> Answer[Contextual Answer]
-    
-    subgraph "Extracted Insights"
-        Entities --> D[Disease: Hypertension]
-        Entities --> M[Medication: Aspirin]
-        Entities --> S[Symptom: Chest Pain]
-```
+    Doctor -->|Confirm| Treat[Treatment Plan]
+    Doctor -->|Reject| Retest[Further Testing]
+
+    %% Styles for clinical look
+    style Patient fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style AI_Analysis fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5
+    style Doctor fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
 
 **2. Capabilities & Implementation**
 
