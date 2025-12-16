@@ -289,6 +289,27 @@ After 50 epochs of training, the model achieved peak convergence at **Epoch 39**
 
 > **Note on Tumor Core (TC):** A Dice score >0.80 on the Tumor Core is traditionally the hardest benchmark in BraTS. Our **Residual Attention SE** architecture specifically excelled here, peaking at **0.8860** on the internal validation set during training.
 
+
+### 📊 Benchmarking vs. State-of-the-Art (nnU-Net)
+
+To evaluate the efficacy of our architecture, we compared our segmentation results against **nnU-Net**, the winner of the BraTS 2020 challenge.
+
+Our model achieves **state-of-the-art performance on Whole Tumor (WT) segmentation**, slightly outperforming the reported nnU-Net baseline in this category.
+
+| Tumor Region | Our Model (Dice Score) | nnU-Net (Dice Score) |
+| :--- | :---: | :---: |
+| **Whole Tumor (WT)** | **89.48%** | 88.95% |
+| **Tumor Core (TC)** | 81.28% | 85.06% |
+| **Enhancing Tumor (ET)** | 74.10% | 82.03% |
+
+> **Note on Methodology:**
+> * **Our Results:** Evaluation was performed on a **20% hold-out test set** split from the official BraTS training data.
+> * **nnU-Net Results:** Benchmarks are sourced directly from the [BraTS 2020 Challenge Rankings](https://www.med.upenn.edu/cbica/brats2020/rankings.html), which evaluated performance on the official, hidden test dataset.
+>
+> While direct comparison is approximate due to dataset partitioning differences, the results demonstrate that our custom architecture offers competitive segmentation capabilities, particularly in delineating the gross tumor volume.
+
+
+
 ### 3. Error Analysis & Robustness
 We went beyond average metrics to analyze specific failure modes:
 
