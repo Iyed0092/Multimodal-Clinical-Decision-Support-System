@@ -298,6 +298,13 @@ We went beyond average metrics to analyze specific failure modes:
 
 
 
+### Visual Results
+The model provides high-precision segmentation of clinical regions of interest. Below is an example of the best-performing case:
+
+![Segmentation Best Case](https://raw.githubusercontent.com/Iyed0092/Multimodal-Clinical-Decision-Support-System/main/segmentation_best_case.png)
+
+
+
 ### 4. Convergence Profile
 The training process demonstrated stable convergence, with the **Hybrid Loss** (BCE + Dice) effectively preventing oscillation.
 
