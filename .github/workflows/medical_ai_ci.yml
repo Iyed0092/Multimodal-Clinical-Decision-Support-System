@@ -12,6 +12,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive  # <--- FIX 1: Downloads the frontend code
+        lfs: true              # <--- FIX 2: Downloads the 110MB model weights
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
