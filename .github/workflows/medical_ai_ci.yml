@@ -13,8 +13,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: recursive  # <--- FIX 1: Downloads the frontend code
-        lfs: true              # <--- FIX 2: Downloads the 110MB model weights
+        submodules: recursive
+        lfs: true
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
@@ -27,16 +27,10 @@ jobs:
         if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
 
     - name: Check Code Quality (Linting)
-      # This checks for syntax errors but ignores style warnings (E501)
       run: |
         pip install flake8
-        # stop the build if there are Python syntax errors or undefined names
         flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Build Docker Images (Sanity Check)
       run: |
-<<<<<<< Updated upstream
         docker compose build
-=======
-        docker compose build
->>>>>>> Stashed changes
