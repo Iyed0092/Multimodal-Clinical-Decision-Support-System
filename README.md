@@ -325,18 +325,20 @@ A naive transfer learning approach (just swapping the last layer) often leads to
 The original 1000-class ImageNet head was replaced with:
 
 ```mermaid
-graph LR
-    Features[DenseNet Features (1024)] --> pooling[Adaptive Avg Pool]
+graph TD
+    Features[DenseNet Features: 1024] --> pooling[Adaptive Avg Pool]
     pooling --> flat[Flatten]
-    flat --> fc1[Linear (1024 -> 512)]
+    flat --> fc1[Linear: 1024 → 512]
     fc1 --> relu[ReLU Activation]
-    relu --> drop[Dropout (p=0.5)]
-    drop --> fc2[Linear (512 -> 1)]
+    relu --> drop[Dropout: p=0.5]
+    drop --> fc2[Linear: 512 → 1]
     fc2 --> sigmoid[Sigmoid Output]
-    sigmoid --> prob[Probability Score (0-1)]
+    sigmoid --> prob[Probability Score: 0-1]
 
-    style drop fill:#f9f,stroke:#333,stroke-width:2px,color:black
-
+    %% Styling for a professional look
+    style Features fill:#f0f4f8,stroke:#334e68,stroke-width:2px
+    style drop fill:#fff0f6,stroke:#a61e4d,stroke-width:1px,stroke-dasharray: 5 5
+    style prob fill:#ebfbee,stroke:#2b8a3e,stroke-width:2px
 ```
 
 **Bottleneck Layer:** Compresses high-dimensional features to a dense 512-vector representation.
