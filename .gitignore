@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+
+# Virtual Env
+venv/
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Project specific
+uploads/
+
+# BLOCK the heavy raw data (Git doesn't see dockerignore)
+backend/data/raw/
+
+# ALLOW the model (Removed *.pth and data/models/ lines)
