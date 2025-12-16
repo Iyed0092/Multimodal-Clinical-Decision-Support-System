@@ -32,4 +32,4 @@ jobs:
 
     - name: Build Docker Images (Sanity Check)
       run: |
-        docker-compose build
+        docker compose build
