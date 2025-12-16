@@ -35,4 +35,8 @@ jobs:
 
     - name: Build Docker Images (Sanity Check)
       run: |
+<<<<<<< Updated upstream
         docker compose build
+=======
+        docker compose build
+>>>>>>> Stashed changes
