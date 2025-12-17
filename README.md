@@ -150,7 +150,7 @@ Medical-AI-Project/
 
 ### 🧬 Data Augmentation Pipeline (Augment3D)
 
-To combat overfitting—a common challenge in medical deep learning due to limited datasets—we implemented a robust, on-the-fly 3D augmentation pipeline. The Augment3D class applies stochastic transformations to every batch during training, effectively generating infinite variations of the training data.
+To combat overfitting—a common challenge in medical deep learning due to limited datasets—I implemented a robust, on-the-fly 3D augmentation pipeline. The Augment3D class applies stochastic transformations to every batch during training, effectively generating infinite variations of the training data.
 
 The pipeline is divided into two distinct categories:
 
@@ -178,7 +178,7 @@ The architecture integrates three state-of-the-art mechanisms into a unified pip
 
 Unlike standard 2D approaches that process MRI slices individually (losing Z-axis context), our network operates on full 4D tensors $(C, D, H, W)$.
 
-Residual Connections: Inspired by ResNet, we replaced standard convolutional blocks with Residual Units.
+Residual Connections: Inspired by ResNet, I replaced standard convolutional blocks with Residual Units.
 
 Why? In deep 3D networks, gradients often vanish during backpropagation. Residual skips allow gradients to flow through the network unimpeded, enabling deeper feature extraction without degradation.
 
@@ -187,9 +187,9 @@ Why? In deep 3D networks, gradients often vanish during backpropagation. Residua
 The core of our segmentation framework is a custom `UNet3D` class defined in `backend/src/segmentation/unet_3d.py`. This section details the component-level logic from weight initialization to the final layer assembly.
 
 ### 1. Robust Initialization Strategy (`_init_weights`)
-Deep 3D networks are highly susceptible to the **Vanishing Gradient** problem. To ensure signal propagation through 50+ layers, we implement a custom initialization scheme rather than relying on PyTorch defaults.
+Deep 3D networks are highly susceptible to the **Vanishing Gradient** problem. To ensure signal propagation through 50+ layers, I implement a custom initialization scheme rather than relying on PyTorch defaults.
 
-* **Convolutional Layers:** We use **Kaiming (He) Normal Initialization** (`mode='fan_out'`).
+* **Convolutional Layers:** I use **Kaiming (He) Normal Initialization** (`mode='fan_out'`).
     * *Code:* `nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='leaky_relu')`
     * *Why:* This preserves the variance of the forward pass, preventing activation collapse in the early epochs of training 3D volumes.
 * **Normalization Layers:** InstanceNorm weights are initialized to 1 and bias to 0 to start as identity transformations.
@@ -206,7 +206,7 @@ Located inside every residual unit, this block performs **dynamic channel recali
 * **Impact:** It learns a weight vector $\sigma$ that amplifies tumor-relevant channels while suppressing noise channels before they enter the next layer.
 
 #### B. Residual SE Block (The Encoder Unit)
-We replace standard convolutions with a Residual structure to facilitate deep learning.
+I replace standard convolutions with a Residual structure to facilitate deep learning.
 * **Structure:** `Input` + `Residual(Input)`
 * **Path:** `Conv3D` $\to$ `InstanceNorm` $\to$ `LeakyReLU` $\to$ `Conv3D` $\to$ `InstanceNorm` $\to$ **`SEBlock`** $\to$ `Dropout`.
 * **Logic:** The residual connection `x + residual` allows gradients to flow directly through the network during backpropagation, solving the degradation problem.
@@ -234,15 +234,15 @@ The model follows a symmetric Encoder-Decoder structure with mathematically alig
 | **Decoder 3** | Attn Gate + Up | 128 + 64 | 64 | $32^3$ |
 | **Output** | Conv3D (1x1) | 16 | 3 (WT, TC, ET) | $128^3$ |
 
-*Note: We utilize `trilinear` interpolation for upsampling to preserve smooth 3D spatial coherence.*
+*Note: I utilize `trilinear` interpolation for upsampling to preserve smooth 3D spatial coherence.*
 
 ## ⚙️ Advanced Training Methodology
 
-To maximize the performance of the Residual Attention SE 3D U-Net, we implemented a rigorous training pipeline designed to handle the specific challenges of medical volumetry: class imbalance, memory constraints, and convergence instability.
+To maximize the performance of the Residual Attention SE 3D U-Net, I implemented a rigorous training pipeline designed to handle the specific challenges of medical volumetry: class imbalance, memory constraints, and convergence instability.
 
 ### 1. Hybrid Loss Function (The "Best of Both Worlds")
 Training on Dice Score alone can be unstable due to its non-convex nature. Training on Cross-Entropy alone often ignores global geometry.
-We utilized a **Compound Loss Function** combining the pixel-wise precision of Binary Cross Entropy (BCE) with the global overlap optimization of Soft Dice Loss.
+I utilized a **Compound Loss Function** combining the pixel-wise precision of Binary Cross Entropy (BCE) with the global overlap optimization of Soft Dice Loss.
 
 $$\mathcal{L}_{total} = \mathcal{L}_{BCE}(y, \hat{y}) + \mathcal{L}_{Dice}(y, \hat{y})$$
 
@@ -251,19 +251,19 @@ $$\mathcal{L}_{total} = \mathcal{L}_{BCE}(y, \hat{y}) + \mathcal{L}_{Dice}(y, \h
 
 ### 2. Automatic Mixed Precision (AMP) ⚡
 3D MRI volumes are memory-intensive. Training a 50-layer 3D network on standard GPUs is often impossible with `float32` precision.
-* **Implementation:** We leveraged `torch.amp.autocast` (PyTorch 2.6+) to dynamically switch between `float16` (half precision) for matrix multiplications and `float32` (single precision) for accumulation.
+* **Implementation:** I leveraged `torch.amp.autocast` (PyTorch 2.6+) to dynamically switch between `float16` (half precision) for matrix multiplications and `float32` (single precision) for accumulation.
 * **GradScaler:** A gradient scaler was implemented to prevent "underflow" (gradients becoming so small they round to zero) common in `float16` backpropagation.
 * **Result:** Reduced VRAM usage by ~40% and increased training speed by 2x, allowing for larger batch sizes and deeper network layers.
 
 ### 3. Optimization Strategy
 * **Optimizer:** **AdamW** (Adam with Weight Decay `1e-5`). Unlike standard Adam, AdamW decouples weight decay from gradient updates, leading to better generalization on medical data.
-* **Learning Rate Scheduler:** We employed a **ReduceLROnPlateau** scheduler.
+* **Learning Rate Scheduler:** I employed a **ReduceLROnPlateau** scheduler.
     * *Mechanism:* Monitors the Validation Dice Score.
     * *Trigger:* If performance stagnates for **5 epochs** (patience), the Learning Rate is reduced by a factor of **0.5**.
     * *Impact:* This allows the model to make coarse adjustments early on and fine-tune weights with high precision towards the end of training (the "fine-tuning phase").
 
 ### 4. "Leakage-Proof" Data Pipeline
-To ensure research integrity, we strictly separated **Data Augmentation** from **Data Loading**:
+To ensure research integrity, I strictly separated **Data Augmentation** from **Data Loading**:
 1.  **Physical Split:** Files are physically moved to `train/` and `test/` directories before training begins.
 2.  **On-the-Fly Augmentation:** Geometric and intensity transforms are applied in RAM only during the `__getitem__` call.
 3.  **Result:** Guarantees mathematically zero data leakage between training samples and validation metrics.
@@ -272,7 +272,7 @@ To ensure research integrity, we strictly separated **Data Augmentation** from *
 ## 📊 Experimental Results & Performance Analysis
 
 ### 1. Dataset & Methodology
-To ensure rigorous evaluation, we utilized the **BraTS 2021** dataset. Since the official test set labels are withheld by the challenge organizers (evaluation server), we implemented a strict **80/20 Hold-Out Split** on the provided training data:
+To ensure rigorous evaluation, I utilized the **BraTS 2021** dataset. Since the official test set labels are withheld by the challenge organizers (evaluation server), I implemented a strict **80/20 Hold-Out Split** on the provided training data:
 * **Training Set (80%):** 295 patients used for optimization.
 * **Test Set (20%):** 74 patients completely unseen during training, used exclusively for the final performance report.
 
@@ -292,7 +292,7 @@ After 50 epochs of training, the model achieved peak convergence at **Epoch 39**
 
 ### 📊 Benchmarking vs. State-of-the-Art (nnU-Net)
 
-To evaluate both performance and stability, we compared our segmentation results against **nnU-Net**, the winner of the BraTS 2020 challenge.
+To evaluate both performance and stability, I compared our segmentation results against **nnU-Net**, the winner of the BraTS 2020 challenge.
 
 Our model demonstrates **superior stability** (lower standard deviation) in delineating the Whole Tumor and Tumor Core, indicating more consistent performance across diverse patient scans.
 
@@ -311,7 +311,7 @@ Our model demonstrates **superior stability** (lower standard deviation) in deli
 
 
 ### 3. Error Analysis & Robustness
-We went beyond average metrics to analyze specific failure modes:
+I went beyond average metrics to analyze specific failure modes:
 
 * **🏆 Best Case (Patient #28):** Achieved a near-perfect **Dice of 0.9765**. The model captured complex, irregular tumor shapes with human-level accuracy.
 * **📉 Worst Case (Patient #52):** Recorded a Dice of **0.3444**.
@@ -342,13 +342,13 @@ The training process demonstrated stable convergence, with the **Hybrid Loss** (
 While 3D MRI handles complex volumetric segmentation, the 2D X-Ray module is designed for rapid, automated screening of common thoracic pathologies (e.g., Pneumonia).
 
 ### 1. Model Architecture: Transfer Learning with DenseNet121
-We leverage **Transfer Learning**, initializing our model with weights pre-trained on ImageNet to extract robust low-level visual features (edges, textures).
+I leverage **Transfer Learning**, initializing our model with weights pre-trained on ImageNet to extract robust low-level visual features (edges, textures).
 
 * **Why DenseNet121?** Unlike traditional CNNs (like ResNet), DenseNet connects every layer to every subsequent layer in a feed-forward fashion.
 * **Medical Advantage:** This dense connectivity promotes strong **feature reuse** and mitigates the vanishing gradient problem. For medical datasets, which are often smaller than natural image datasets, this architecture is highly efficient at maximizing information flow from limited samples.
 
 ### 2. Technical Innovation: Custom Regularized Classifier Head
-A naive transfer learning approach (just swapping the last layer) often leads to severe overfitting on medical data. We engineered a custom classification "top" specifically for robust binary diagnosis.
+A naive transfer learning approach (just swapping the last layer) often leads to severe overfitting on medical data. I engineered a custom classification "top" specifically for robust binary diagnosis.
 
 The original 1000-class ImageNet head was replaced with:
 
@@ -377,7 +377,7 @@ graph TD
 
 In clinical practice, a high accuracy score is insufficient without justification. Doctors need to trust why the model made a decision.
 
-We integrated Grad-CAM (Gradient-weighted Class Activation Mapping) into the inference pipeline.
+I integrated Grad-CAM (Gradient-weighted Class Activation Mapping) into the inference pipeline.
 
 **Mechanism**: Grad-CAM computes the gradients of the predicted class score (e.g., "Pneumonia") with respect to the feature maps of the final convolutional layer of the DenseNet backbone.
 
@@ -391,48 +391,23 @@ We integrated Grad-CAM (Gradient-weighted Class Activation Mapping) into the inf
 
 ## 📝 3. Clinical NLP & Semantic Analysis Module
 
-Medical diagnosis rarely relies on imaging alone. To provide a holistic patient profile, we integrated a **Natural Language Processing (NLP)** engine capable of parsing unstructured clinical notes and extracting actionable insights.
+Medical diagnosis rarely relies on imaging alone. To provide a holistic patient profile, I integrated a **Natural Language Processing (NLP)** engine capable of parsing unstructured clinical notes and extracting actionable insights.
 
 ### 1. Architecture: Domain-Specific Transformers
-Standard NLP models (like BERT) fail on medical jargon. We utilized **BioBERT** (Bidirectional Encoder Representations from Transformers for Biomedical Text Mining), a model pre-trained on massive biomedical corpora (PubMed, PMC) to understand clinical terminology.
+Standard NLP models (like BERT) fail on medical jargon. I utilized **BioBERT** (Bidirectional Encoder Representations from Transformers for Biomedical Text Mining), a model pre-trained on massive biomedical corpora (PubMed, PMC) to understand clinical terminology.
 
-The module (`backend/src/nlp/clinical_nlp.py`) implements two distinct pipelines using the Hugging Face ecosystem:
-
-
-```mermaid
-graph TD
-    Patient(Patient Arrives) -->|Symptom: Chest Pain| Triage[Hospital Triage]
-    Triage -->|Acquire Image| XRay[X-Ray Scan]
-    XRay -->|DICOM Data| AI[AI Diagnostic Model]
-    
-    subgraph AI_Analysis [AI Decision Process]
-        AI -->|Forward Pass| Class[Classification: Pneumonia]
-        AI -->|Grad-CAM| Heatmap[Visual Heatmap]
-    end
-
-    Class --> Doctor{Radiologist Review}
-    Heatmap --> Doctor
-    
-    Doctor -->|Confirm| Treat[Treatment Plan]
-    Doctor -->|Reject| Retest[Further Testing]
-
-    %% Styles for clinical look
-    style Patient fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    style AI_Analysis fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5
-    style Doctor fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-```
 
 **2. Capabilities & Implementation**
 
 **A. Biomedical Named Entity Recognition (NER)**
-We deploy the d4data/biomedical-ner-all model to automatically structure free-text notes into categorized entities.
+I deploy the d4data/biomedical-ner-all model to automatically structure free-text notes into categorized entities.
 
-**Aggregation Strategy:** We use "simple" aggregation to merge sub-word tokens (e.g., "hy per ten sion") into single coherent entities ("Hypertension").
+**Aggregation Strategy:** I use "simple" aggregation to merge sub-word tokens (e.g., "hy per ten sion") into single coherent entities ("Hypertension").
 
 **Confidence Filtering:** A strict threshold (score > 0.6) is applied to filter out low-confidence predictions, ensuring only high-probability clinical terms are presented to the user.
 
 **B. Context-Aware Question Answering (Q&A)**
-We integrated dmis-lab/biobert-base-cased-v1.1-squad to allow clinicians to interactively query patient records.
+I integrated dmis-lab/biobert-base-cased-v1.1-squad to allow clinicians to interactively query patient records.
 
 **Function:** The model takes a context (the full patient history) and a natural language question (e.g., "What is the prescribed dosage?").
 
